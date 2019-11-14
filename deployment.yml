@@ -1,0 +1,141 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-a
+  labels:
+    app: service-a
+spec:
+  publishNotReadyAddresses: true
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: service-a
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-b
+  labels:
+    app: service-b
+spec:
+  publishNotReadyAddresses: true
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: service-b
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-c
+  labels:
+    app: service-c
+spec:
+  publishNotReadyAddresses: true
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: service-c
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-a
+  labels:
+    app: service-a
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-a
+  template:
+    metadata:
+      name: service-a
+      labels:
+        app: service-a
+        autotrace: enabled
+    spec:
+      containers:
+        - name: service-a
+          image: k0diak/pass-the-buck:1.0.0
+          imagePullPolicy: Always
+          env:
+            - name: UPSTREAM
+              value: "http://service-b:8080"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-b
+  labels:
+    app: service-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-b
+  template:
+    metadata:
+      name: service-b
+      labels:
+        app: service-b
+        autotrace: enabled
+    spec:
+      containers:
+        - name: service-b
+          image: k0diak/pass-the-buck:1.0.0
+          imagePullPolicy: Always
+          env:
+            - name: UPSTREAM
+              value: "http://service-c:8080"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: service-c
+  labels:
+    app: service-c
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: service-c
+  template:
+    metadata:
+      name: service-c
+      labels:
+        app: service-c
+        autotrace: enabled
+    spec:
+      containers:
+        - name: service-c
+          image: k0diak/pass-the-buck:1.0.0
+          imagePullPolicy: Always
+          env:
+            - name: UPSTREAM
+              value: "http://worldclockapi.com/"
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 250m
+              memory: 256Mi
